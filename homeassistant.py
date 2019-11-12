@@ -1,7 +1,7 @@
 import serial
 import time
 import mysql.connector
-
+#dds
 db_conn = mysql.connector.connect(
   host = "localhost",
   user = "root",
