@@ -1,7 +1,7 @@
 import serial
 import time
 import mysql.connector
-
+#connect to database
 db_conn = mysql.connector.connect(
   host = "localhost",
   user = "root",
