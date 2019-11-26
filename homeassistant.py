@@ -1,23 +1,31 @@
 import serial
 import time
-import mysql.connector
+import requests
 
-db_conn = mysql.connector.connect(
-  host = "localhost",
-  user = "root",
-  passwd = "test",
-  database = "test"
-)
-
-db_stmt = db_conn.cursor()
-
-sql = "SELECT * FROM temperature"
-db_stmt.execute(sql)
-result = db_stmt.fetchone()
-print("result: " + str(result))
 
 SERIAL_PORT = "COM12"
 SERIAL_BAUD = 9600
+
+
+def rTemperature(currentTemp):
+    try:
+        rTemp = requests.post('http://ec2-35-158-176-134.eu-central-1.compute.amazonaws.com/temperature', json={'temperature': currentTemp})
+        print (rTemp.status_code)
+
+    except requests.exceptions.MissingSchema:
+        print("Invalid URL")
+    finally:
+        time.sleep(5)
+
+def rLights():
+    rLights = requests.get('http://ec2-35-158-176-134.eu-central-1.compute.amazonaws.com/lights/1')
+    print(rLights.status_code)
+    data = rLights.json()
+
+    ser.write(data[0]['lightStatus'])
+    time.sleep(1)
+
+
 
 while True:
     try:
@@ -32,11 +40,12 @@ while True:
 
             if read_serial[:12] == "Temperature1":
                 current_temp = read_serial[14:]
-                print("Data from SerialPort: " + current_temp)
-                sql = "UPDATE temperature SET currentTemperature =  %s WHERE idTemperature = %s"
-                val = (current_temp, 1)
-                db_stmt.execute(sql, val)
-                db_conn.commit()
-                print(db_stmt.rowcount, "record(s) affected")
+                #print("Data from SerialPort: " + current_temp)
+                rTemperature(current_temp)
+
+            rLights()
+                
+                
+
     except:
         print("Check connections.")
