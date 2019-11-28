@@ -23,7 +23,8 @@ def rLights():
     print(rLights.status_code)
     data = rLights.json()
 
-    #ser.write(data[0]['lightStatus'])
+    #ser.write("1".encode())
+    ser.write(data[0]['lightStatus'].encode())
     time.sleep(1)
 
 
@@ -35,14 +36,15 @@ while True:
         time.sleep(2)
         print("Connected to SerialPort: " + str(SERIAL_PORT) + ", baud rate: " + str(SERIAL_BAUD))
 
+
         while True:
             read_serial = ser.readline().decode('utf-8')  # Removing b, \r, \n from the line
 
             if read_serial[:12] == "Temperature1":
                 current_temp = read_serial[14:]
                 current_temp = current_temp.rstrip()
-                # print("Data from SerialPort: " + current_temp)
-                rTemperature(current_temp)
+                print("Data from SerialPort: " + current_temp)
+                # rTemperature(current_temp)
 
             rLights()
 
