@@ -2,9 +2,10 @@ import serial
 import time
 import requests
 
-SERIAL_PORT = "COM12"
+SERIAL_PORT = "COM15"
 SERIAL_BAUD = 9600
 
+counter = 0
 
 def rTemperature(currentTemp):
     try:
@@ -14,8 +15,6 @@ def rTemperature(currentTemp):
 
     except requests.exceptions.MissingSchema:
         print("Invalid URL")
-    finally:
-        time.sleep(5)
 
 
 def rLights():
@@ -23,32 +22,37 @@ def rLights():
     print(rLights.status_code)
     data = rLights.json()
 
-    #ser.write("1".encode())
-    ser.write(data[0]['lightStatus'].encode())
-    time.sleep(1)
+    return data
 
 
 while True:
-    try:
-        SERIAL_PORT = input("SerialPort: ")
-        SERIAL_BAUD = input("Baud Rate: ")
-        ser = serial.Serial(SERIAL_PORT, SERIAL_BAUD)
-        time.sleep(2)
-        print("Connected to SerialPort: " + str(SERIAL_PORT) + ", baud rate: " + str(SERIAL_BAUD))
+    
+    ser = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=0, write_timeout=0)
+    time.sleep(2)
+    print("Connected to SerialPort: " + str(SERIAL_PORT) + ", baud rate: " + str(SERIAL_BAUD))
 
+    var = ""
+    while True:
+        read_serial = ser.readline().decode('utf-8')  # Removing b, \r, \n from the line
 
-        while True:
-            read_serial = ser.readline().decode('utf-8')  # Removing b, \r, \n from the line
+        if read_serial[:12] == "Temperature1":
+            current_temp = read_serial[14:]
+            current_temp = current_temp.rstrip()    
 
-            if read_serial[:12] == "Temperature1":
-                current_temp = read_serial[14:]
-                current_temp = current_temp.rstrip()
-                print("Data from SerialPort: " + current_temp)
-                # rTemperature(current_temp)
+        if counter == 4:
+            rTemperature(current_temp)
+            data = rLights()
+            counter = 0
+            time.sleep(0.5)
+        else:
+            data = rLights()
+            counter = counter + 1
+            time.sleep(0.5)
 
-            rLights()
+        if data[0]['lightStatus'] != var:
+            ser.write(data[0]['lightStatus'].encode())
 
+            var = data[0]['lightStatus']
+ 
 
-
-    except:
-        print("Check connections.")
+        time.sleep(0.5)
