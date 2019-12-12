@@ -56,8 +56,4 @@ while True:
             
         ser.write(status[0]['lightStatus'].encode())
 
-        if read_serial[:6] == "lights":
-            current_lights = read_serial[8:]
-            print(current_lights)
-
         time.sleep(0.5)
