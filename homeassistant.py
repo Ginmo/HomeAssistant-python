@@ -2,10 +2,13 @@ import serial
 import time
 import requests
 
-SERIAL_PORT = "COM15"
+SERIAL_PORT = "COM3"
 SERIAL_BAUD = 9600
 
+current_temp = "0"
 counter = 0
+status = "0"
+
 
 def rTemperature(currentTemp):
     try:
@@ -31,28 +34,30 @@ while True:
     time.sleep(2)
     print("Connected to SerialPort: " + str(SERIAL_PORT) + ", baud rate: " + str(SERIAL_BAUD))
 
-    var = ""
+    
+
     while True:
         read_serial = ser.readline().decode('utf-8')  # Removing b, \r, \n from the line
 
         if read_serial[:12] == "Temperature1":
             current_temp = read_serial[14:]
-            current_temp = current_temp.rstrip()    
+            current_temp = current_temp.rstrip()
+            
 
         if counter == 4:
             rTemperature(current_temp)
-            data = rLights()
+            status = rLights()
             counter = 0
             time.sleep(0.5)
         else:
-            data = rLights()
+            status = rLights()
             counter = counter + 1
             time.sleep(0.5)
+            
+        ser.write(status[0]['lightStatus'].encode())
 
-        if data[0]['lightStatus'] != var:
-            ser.write(data[0]['lightStatus'].encode())
-
-            var = data[0]['lightStatus']
- 
+        if read_serial[:6] == "lights":
+            current_lights = read_serial[8:]
+            print(current_lights)
 
         time.sleep(0.5)
